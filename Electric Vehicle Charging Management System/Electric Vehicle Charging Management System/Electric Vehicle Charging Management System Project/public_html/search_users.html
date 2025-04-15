@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Users</title>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script>
+        $(document).ready(function () {
+            $("#name").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: 'get_all_users.php', // Replace with the actual server-side script
+                        type: 'GET',
+                        success: function (data) {
+                            var users = JSON.parse(data);
+                            var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+                            response($.grep(users, function (item) {
+                                return matcher.test(item);
+                            }));
+                        },
+                        error: function (error) {
+                            console.error('Error fetching user data:', error);
+                        }
+                    });
+                },
+                minLength: 0, // Show suggestions from the beginning (empty input),
+                focus: function (event, ui) {
+                    // Prevent value inserted on focus
+                    event.preventDefault();
+                }
+            }).on('focus', function () {
+                // Trigger the search when the input is focused
+                $(this).autocomplete('search', '');
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Search Users</h1>
+
+    <form action="search_users_results.php" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <input type="submit" value="Search">
+    </form>
+</body>
+
+</html>

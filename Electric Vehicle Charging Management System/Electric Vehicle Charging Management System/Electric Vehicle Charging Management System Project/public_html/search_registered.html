@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Registered Users</title>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: 'get_all_registered.php',
+                type: 'GET',
+                success: function (data) {
+                    var users = JSON.parse(data);
+                    var tags = users.join(',');
+                    $('#username').attr('data-tags', tags);
+
+                    $("#username").autocomplete({
+                        source: function(request, response) {
+                            var term = $.ui.autocomplete.escapeRegex(request.term);
+                            var startsWithMatcher = new RegExp("^" + term, "i");
+                            response($.grep(users, function(item) {
+                                return startsWithMatcher.test(item);
+                            }));
+                        },
+                        minLength: 0,
+                        focus: function (event, ui) {
+                            event.preventDefault();
+                        }
+                    }).on('focus', function () {
+                        $(this).autocomplete('search', '');
+                    });
+                },
+                error: function (error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Search Registered Users</h1>
+
+    <form action="search_registered_results.php" method="post">
+        <label for="username">Registered User Username:</label>
+        <input type="text" id="username" name="username" required data-tags=""><br><br>
+
+        <input type="submit" value="Search">
+    </form>
+</body>
+
+</html>

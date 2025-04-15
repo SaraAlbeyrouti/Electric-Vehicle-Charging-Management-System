@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Charging Stations</title>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: 'get_all_stations.php',
+                type: 'GET',
+                success: function (data) {
+                    var stations = JSON.parse(data);
+                    var locations = stations.join(',');
+                    $('#location').attr('data-locations', locations);
+
+                    $("#location").autocomplete({
+                        source: function(request, response) {
+                            var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+                            response($.grep(stations, function(item) {
+                                return matcher.test(item);
+                            }));
+                        },
+                        minLength: 0, // Show suggestions from the beginning (empty input),
+                        focus: function (event, ui) {
+                            // Prevent value inserted on focus
+                            event.preventDefault();
+                        }
+                    }).on('focus', function () {
+                        // Trigger the search when the input is focused
+                        $(this).autocomplete('search', '');
+                    });
+                },
+                error: function (error) {
+                    console.error('Error fetching station data:', error);
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Search Charging Stations</h1>
+
+    <form action="search_stations_results.php" method="post">
+        <label for="location">Station Location:</label>
+        <input type="text" id="location" name="location" required data-locations=""><br><br>
+
+        <input type="submit" value="Search">
+    </form>
+</body>
+
+</html>

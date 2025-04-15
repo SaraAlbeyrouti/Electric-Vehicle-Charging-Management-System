@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Vehicles</title>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: 'get_all_vehicles.php',
+                type: 'GET',
+                success: function (data) {
+                    var brands = JSON.parse(data);
+                    var brandNames = brands.join(',');
+                    $('#brand').attr('data-brands', brandNames);
+
+                    $("#brand").autocomplete({
+                        source: function(request, response) {
+                            var term = $.ui.autocomplete.escapeRegex(request.term);
+                            var startsWithMatcher = new RegExp("^" + term, "i");
+                            response($.grep(brands, function(item) {
+                                return startsWithMatcher.test(item);
+                            }));
+                        },
+                        minLength: 0,
+                        focus: function (event, ui) {
+                            event.preventDefault();
+                        }
+                    }).on('focus', function () {
+                        $(this).autocomplete('search', '');
+                    });
+                },
+                error: function (error) {
+                    console.error('Error fetching brand data:', error);
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Search Vehicles</h1>
+
+    <form action="search_vehicles_results.php" method="post">
+        <label for="brand">Brand:</label>
+        <input type="text" id="brand" name="brand" required data-brands=""><br><br>
+
+        <input type="submit" value="Search">
+    </form>
+</body>
+
+</html>
